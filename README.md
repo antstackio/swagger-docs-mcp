@@ -54,8 +54,9 @@ Add to your MCP settings file (e.g., `~/.config/mcp/settings.json`):
       "command": "node",
       "args": ["/path/to/swagger-docs-mcp/dist/index.js"],
       "env": {
-        "AUTH_TYPE": "bearer",
-        "AUTH_TOKEN": "your-token-here"
+        "AUTH_TYPE": "basic",
+        "AUTH_USERNAME": "username",
+        "AUTH_PASSWORD": "password"
       }
     }
   }
