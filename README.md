@@ -45,7 +45,7 @@ Configure authentication based on your API requirements:
 
 ### MCP Configuration
 
-Add to your MCP settings file (e.g., `~/.config/mcp/settings.json`):
+Add to your MCP settings file (e.g., `~/.config/mcp/settings.json` or `~/.claude.json`):
 
 ```json
 {
