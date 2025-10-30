@@ -27,7 +27,7 @@ const server = new Server(
 );
 
 const FetchSwaggerSchema = z.object({
-  url: z.string().url().describe('The URL of the Swagger/OpenAPI documentation'),
+  url: z.string().url().optional().describe('The URL of the Swagger/OpenAPI documentation (optional, uses configured SWAGGER_URL if not provided)'),
 });
 
 const GetEndpointsSchema = z.object({
@@ -47,16 +47,16 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
     tools: [
       {
         name: 'fetch_swagger',
-        description: 'Fetch and parse Swagger/OpenAPI documentation from a URL with authentication',
+        description: 'Fetch and parse Swagger/OpenAPI documentation from a URL with authentication. Uses configured SWAGGER_URL if no URL is provided.',
         inputSchema: {
           type: 'object',
           properties: {
             url: {
               type: 'string',
-              description: 'The URL of the Swagger/OpenAPI documentation'
+              description: 'The URL of the Swagger/OpenAPI documentation (optional, uses configured SWAGGER_URL if not provided)'
             }
           },
-          required: ['url']
+          required: []
         },
       },
       {
@@ -112,16 +112,16 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
       },
       {
         name: 'validate_swagger',
-        description: 'Validate a Swagger/OpenAPI document',
+        description: 'Validate a Swagger/OpenAPI document. Uses configured SWAGGER_URL if no URL is provided.',
         inputSchema: {
           type: 'object',
           properties: {
             url: {
               type: 'string',
-              description: 'The URL of the Swagger/OpenAPI documentation to validate'
+              description: 'The URL of the Swagger/OpenAPI documentation to validate (optional, uses configured SWAGGER_URL if not provided)'
             }
           },
-          required: ['url']
+          required: []
         },
       },
       {
@@ -157,12 +157,15 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
   try {
     switch (name) {
       case 'fetch_swagger': {
-        if (!args) {
-          throw new Error('No arguments provided for fetch_swagger');
+        const { url } = FetchSwaggerSchema.parse(args || {});
+        const swaggerUrl = url || config.swaggerUrl;
+
+        if (!swaggerUrl) {
+          throw new Error('No Swagger URL provided. Please provide a URL parameter or configure SWAGGER_URL in your environment.');
         }
-        const { url } = FetchSwaggerSchema.parse(args);
-        cachedSwaggerDoc = await swaggerFetcher.fetchSwaggerDoc(url);
-        
+
+        cachedSwaggerDoc = await swaggerFetcher.fetchSwaggerDoc(swaggerUrl);
+
         return {
           content: [
             {
@@ -274,11 +277,14 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
       }
 
       case 'validate_swagger': {
-        if (!args) {
-          throw new Error('No arguments provided for validate_swagger');
+        const { url } = z.object({ url: z.string().url().optional() }).parse(args || {});
+        const swaggerUrl = url || config.swaggerUrl;
+
+        if (!swaggerUrl) {
+          throw new Error('No Swagger URL provided. Please provide a URL parameter or configure SWAGGER_URL in your environment.');
         }
-        const { url } = z.object({ url: z.string().url() }).parse(args);
-        const isValid = await swaggerFetcher.validateSwaggerDoc(url);
+
+        const isValid = await swaggerFetcher.validateSwaggerDoc(swaggerUrl);
 
         return {
           content: [
