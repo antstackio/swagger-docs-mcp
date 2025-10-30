@@ -279,13 +279,12 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
         }
         const { url } = z.object({ url: z.string().url() }).parse(args);
         const isValid = await swaggerFetcher.validateSwaggerDoc(url);
-        
+
         return {
           content: [
             {
               type: 'text',
               text: JSON.stringify({
-                url,
                 valid: isValid,
                 message: isValid ? 'Swagger document is valid' : 'Swagger document is invalid',
               }, null, 2),

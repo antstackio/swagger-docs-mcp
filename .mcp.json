@@ -1,0 +1,14 @@
+{
+  "mcpServers": {
+    "swagger-docs": {
+      "command": "node",
+      "args": ["/Users/akshathalaxmi/antstack/curantis/docs_mcp/swagger-docs-mcp/dist/index.js"],
+      "env": {
+        "SWAGGER_URL": "http://localhost:3000/api-docs",
+        "AUTH_TYPE": "basic",
+        "AUTH_USERNAME": "admin",
+        "AUTH_PASSWORD": "swagger123"
+      }
+    }
+  }
+}

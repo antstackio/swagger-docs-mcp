@@ -252,7 +252,7 @@ export class SwaggerFetcher {
         openapi: firstDoc?.openapi,
         swagger: firstDoc?.swagger,
         info: {
-          title: 'Combined Curantis API Documentation',
+          title: 'Combined API Documentation',
           version: '1.0.0',
           description: `Combined documentation from ${this.swaggerConfig.urls.length} API sources`
         },
@@ -346,11 +346,11 @@ export class SwaggerFetcher {
     });
   }
 
-  getApiSources(): Array<{ name: string; url: string }> {
+  getApiSources(): Array<{ name: string }> {
     if (!this.swaggerConfig || !this.swaggerConfig.urls) {
       return [];
     }
-    return this.swaggerConfig.urls;
+    return this.swaggerConfig.urls.map(source => ({ name: source.name }));
   }
 
   getDocBySource(sourceName: string): CombinedSwaggerDoc | undefined {
