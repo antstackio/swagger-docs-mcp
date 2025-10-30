@@ -4,20 +4,23 @@ A Model Context Protocol (MCP) server that fetches and interacts with Swagger/Op
 
 ## Features
 
-- Fetch and parse Swagger/OpenAPI documentation from URLs
+- Fetch and parse Swagger/OpenAPI documentation from various sources:
+  - Direct JSON/YAML files (e.g., `/swagger.json`, `/openapi.yaml`)
+  - Swagger UI endpoints (e.g., `/api-docs`)
+  - Multi-API swagger-config.json setups
 - Multiple authentication methods:
   - Basic Authentication
   - Bearer Token
   - API Key
   - No authentication
-- Cache fetched documentation for improved performance
-- Tools for:
-  - Fetching Swagger docs
-  - Listing all endpoints
-  - Searching endpoints
-  - Getting schema definitions
-  - Validating Swagger documents
-  - Getting API information
+- Cache fetched documentation for improved performance (configurable TTL)
+- Comprehensive tools for:
+  - Fetching and validating Swagger docs
+  - Listing all API endpoints (with optional tag filtering)
+  - Searching endpoints by keywords
+  - Retrieving schema/model definitions
+  - Getting API information and metadata
+  - Working with multiple API sources
 
 ## Installation
 
@@ -28,40 +31,164 @@ npm run build
 
 ## Configuration
 
-### Environment Variables
+### Quick Start
 
-Copy `.env.example` to `.env` and configure:
+There are two ways to configure this MCP server:
 
-```bash
-cp .env.example .env
-```
+1. **Option A: Using .env file (Local Development)**
+2. **Option B: Using MCP Settings (Recommended for Claude Desktop/Code)**
 
-Configure authentication based on your API requirements:
+### Option A: Using .env File
 
-- **No Auth**: Set `AUTH_TYPE=none`
-- **Basic Auth**: Set `AUTH_TYPE=basic` with `AUTH_USERNAME` and `AUTH_PASSWORD`
-- **Bearer Token**: Set `AUTH_TYPE=bearer` with `AUTH_TOKEN`
-- **API Key**: Set `AUTH_TYPE=apiKey` with `API_KEY` and optionally `API_KEY_HEADER`
+1. Copy `.env.example` to `.env`:
+   ```bash
+   cp .env.example .env
+   ```
 
-### MCP Configuration
+2. Edit `.env` and configure your Swagger URL and authentication:
+   ```bash
+   # Required: Your Swagger/OpenAPI documentation URL
+   SWAGGER_URL=https://api.example.com/swagger.json
 
-Add to your MCP settings file (e.g., `~/.config/mcp/settings.json` or `~/.claude.json`):
+   # Choose authentication method
+   AUTH_TYPE=basic  # or: none, bearer, apiKey
 
+   # For Basic Auth
+   AUTH_USERNAME=your_username
+   AUTH_PASSWORD=your_password
+   ```
+
+3. Build and run:
+   ```bash
+   npm install
+   npm run build
+   npm start
+   ```
+
+### Option B: MCP Settings Configuration (Recommended)
+
+Configure directly in your MCP settings file:
+
+- **For Claude Code (CLI)**: Create `.mcp.json` at your project root
+- **For Claude Desktop**: Edit settings via the app or `~/Library/Application Support/Claude/claude_desktop_config.json` (macOS)
+- **For other MCP clients**: Check their documentation for the correct config file location
+
+#### Claude Code Configuration
+
+For Claude Code CLI, create a `.mcp.json` file in your project root:
+
+1. Create `.mcp.json` with your configuration:
+   ```json
+   {
+     "mcpServers": {
+       "swagger-docs": {
+         "command": "node",
+         "args": ["/absolute/path/to/swagger-docs-mcp/dist/index.js"],
+         "env": {
+           "SWAGGER_URL": "https://api.example.com/swagger.json",
+           "AUTH_TYPE": "basic",
+           "AUTH_USERNAME": "your_username",
+           "AUTH_PASSWORD": "your_password"
+         }
+       }
+     }
+   }
+   ```
+
+2. Replace `/absolute/path/to/swagger-docs-mcp` with the actual path to your MCP server installation
+
+3. **Important**: Restart Claude Code for the configuration to take effect
+
+#### Claude Desktop Configuration Examples
+
+For Claude Desktop, configure via the app settings or edit the config file directly:
+
+#### Example 1: Basic Authentication
 ```json
 {
   "mcpServers": {
     "swagger-docs": {
       "command": "node",
-      "args": ["/path/to/swagger-docs-mcp/dist/index.js"],
+      "args": ["/absolute/path/to/swagger-docs-mcp/dist/index.js"],
       "env": {
+        "SWAGGER_URL": "https://api.example.com/swagger.json",
         "AUTH_TYPE": "basic",
-        "AUTH_USERNAME": "username",
-        "AUTH_PASSWORD": "password"
+        "AUTH_USERNAME": "your_username",
+        "AUTH_PASSWORD": "your_password"
       }
     }
   }
 }
 ```
+
+#### Example 2: Bearer Token Authentication
+```json
+{
+  "mcpServers": {
+    "swagger-docs": {
+      "command": "node",
+      "args": ["/absolute/path/to/swagger-docs-mcp/dist/index.js"],
+      "env": {
+        "SWAGGER_URL": "https://api.example.com/swagger.json",
+        "AUTH_TYPE": "bearer",
+        "AUTH_TOKEN": "your_bearer_token"
+      }
+    }
+  }
+}
+```
+
+#### Example 3: API Key Authentication
+```json
+{
+  "mcpServers": {
+    "swagger-docs": {
+      "command": "node",
+      "args": ["/absolute/path/to/swagger-docs-mcp/dist/index.js"],
+      "env": {
+        "SWAGGER_URL": "https://api.example.com/swagger.json",
+        "AUTH_TYPE": "apiKey",
+        "API_KEY": "your_api_key",
+        "API_KEY_HEADER": "X-API-Key"
+      }
+    }
+  }
+}
+```
+
+#### Example 4: No Authentication
+```json
+{
+  "mcpServers": {
+    "swagger-docs": {
+      "command": "node",
+      "args": ["/absolute/path/to/swagger-docs-mcp/dist/index.js"],
+      "env": {
+        "SWAGGER_URL": "https://api.example.com/swagger.json",
+        "AUTH_TYPE": "none"
+      }
+    }
+  }
+}
+```
+
+### Configuration Options
+
+| Variable | Required | Description | Default |
+|----------|----------|-------------|---------|
+| `SWAGGER_URL` | **Yes** | URL to your Swagger/OpenAPI documentation | - |
+| `AUTH_TYPE` | No | Authentication method: `none`, `basic`, `bearer`, or `apiKey` | `none` |
+| `AUTH_USERNAME` | Conditional | Username for Basic Auth (required if `AUTH_TYPE=basic`) | - |
+| `AUTH_PASSWORD` | Conditional | Password for Basic Auth (required if `AUTH_TYPE=basic`) | - |
+| `AUTH_TOKEN` | Conditional | Bearer token (required if `AUTH_TYPE=bearer`) | - |
+| `API_KEY` | Conditional | API Key (required if `AUTH_TYPE=apiKey`) | - |
+| `API_KEY_HEADER` | No | Header name for API Key | `X-API-Key` |
+| `CACHE_TTL` | No | Cache duration in milliseconds | `300000` (5 min) |
+
+**Important Notes:**
+- Replace `/absolute/path/to/swagger-docs-mcp` with the actual absolute path to your installation
+- The `SWAGGER_URL` should point to your Swagger/OpenAPI documentation
+- Sensitive credentials should be stored securely and never committed to version control
 
 ## Usage
 
@@ -128,15 +255,36 @@ npm start
 
 ## Example Usage with Claude
 
-1. Configure the MCP server with your API credentials
-2. In Claude, use the tools to interact with your API documentation:
+1. **Configure the MCP server** with your `SWAGGER_URL` and authentication credentials in your MCP settings (`.mcp.json` for Claude Code or Claude Desktop settings)
 
-```
-- First fetch the Swagger docs: fetch_swagger with your API URL
-- List all endpoints: get_endpoints
-- Search for specific endpoints: search_endpoints with a query
-- Get schema details: get_schema with a schema name
-```
+2. **Build the server** if you haven't already:
+   ```bash
+   npm install
+   npm run build
+   ```
+
+3. **Restart Claude Code/Desktop** to load the MCP server
+
+4. **Start using the tools** in Claude:
+
+   ```
+   Claude: "Fetch the Swagger documentation from https://api.example.com/swagger.json"
+   → Uses fetch_swagger({ url: "https://api.example.com/swagger.json" })
+
+   Claude: "Show me all the user-related endpoints"
+   → Uses get_endpoints({ tag: "users" })
+
+   Claude: "Search for authentication endpoints"
+   → Uses search_endpoints({ query: "auth" })
+
+   Claude: "Show me the User schema"
+   → Uses get_schema({ schemaName: "User" })
+
+   Claude: "What's the API version and description?"
+   → Uses get_api_info({})
+   ```
+
+5. **Work with the documentation** - Claude can now answer questions about your API, help generate code that uses the endpoints, explain request/response formats, and more
 
 ## Security Notes
 

@@ -1,0 +1,14 @@
+{
+  "mcpServers": {
+    "swagger-docs": {
+      "command": "node",
+      "args": ["/absolute/path/to/swagger-docs-mcp/dist/index.js"],
+      "env": {
+        "SWAGGER_URL": "https://api.example.com/swagger.json",
+        "AUTH_TYPE": "basic",
+        "AUTH_USERNAME": "your_username",
+        "AUTH_PASSWORD": "your_password"
+      }
+    }
+  }
+}
